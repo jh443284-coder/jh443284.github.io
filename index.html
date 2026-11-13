@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>！我想要刺青！— 自由人刺青的選擇</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts (Noto Sans TC & Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- 引入 FontAwesome 圖示 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        /* 自訂漸層與發光效果 */
+        .ink-glow {
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.25);
+        }
+        .card-hover {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(245, 158, 11, 0.3);
+        }
+        .selected-card {
+            border-color: #f59e0b !important;
+            background-color: rgba(245, 158, 11, 0.12) !important;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.35);
+        }
+        /* 進度條動畫 */
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        /* 淡入動畫 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-gradient-to-br from-slate-950 via-slate-900 to-zinc-900 text-slate-100">
+
+    <!-- 頂部導覽列 -->
+    <header class="w-full border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400">
+                    <!-- 專屬刺青針筆 SVG 圖示 -->
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 2l4 4"/>
+                        <path d="M17 7l3-3"/>
+                        <path d="M19 9L8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/>
+                        <path d="M9 11l4 4"/>
+                        <path d="M5 19l-3 3"/>
+                        <path d="M14 4l6 6"/>
+                    </svg>
+                </div>
+                <div>
+                    <span id="header-subtitle" class="text-xs font-bold tracking-wider text-amber-400 uppercase block">身體自主權 × 社會框架</span>
+                    <h1 id="header-title" class="text-lg font-extrabold tracking-tight text-white">！我想要刺青！自由人刺青的選擇</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="openStatsModal()" class="text-xs sm:text-sm font-bold text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-1.5 rounded-full border border-amber-500/40 transition-colors cursor-pointer flex items-center">
+                    <i class="fa-solid fa-chart-pie mr-1.5"></i> 全班統計 <span id="total-count-badge" class="ml-1.5 bg-amber-500 text-slate-950 px-1.5 py-0.2 rounded-full text-xs font-black">0</span>
+                </button>
+                <div class="text-xs sm:text-sm font-medium text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700 hidden sm:block" id="step-indicator">
+                    準備開始
+                </div>
+            </div>
+        </div>
+        <!-- 進度條 -->
+        <div class="w-full h-1 bg-slate-800">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-amber-500 to-orange-500 progress-bar" style="width: 0%"></div>
+        </div>
+    </header>
+
+    <!-- 主要互動內容區 -->
+    <main class="flex-grow flex items-center justify-center p-4 sm:p-6">
+        <div class="w-full max-w-3xl">
+
+            <!-- 畫面 0：刺青主題首頁 -->
+            <section id="screen-intro" class="animate-fade-in relative overflow-hidden bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-12 shadow-2xl text-center">
+                <!-- 背景裝飾微光 -->
+                <div class="absolute -top-24 -left-24 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- 刺青主視覺徽章 -->
+                <div class="relative inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-tr from-amber-500/20 via-orange-500/15 to-rose-500/20 border border-amber-500/40 mb-6 ink-glow">
+                    <svg class="w-12 h-12 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 2l4 4"/>
+                        <path d="M17 7l3-3"/>
+                        <path d="M19 9L8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5"/>
+                        <path d="M9 11l4 4"/>
+                        <path d="M5 19l-3 3"/>
+                        <path d="M14 4l6 6"/>
+                    </svg>
+                    <span class="absolute -bottom-2 px-2.5 py-0.5 bg-amber-500 text-slate-950 text-[10px] font-black tracking-widest uppercase rounded-full shadow">
+                        INK &amp; FREEDOM
+                    </span>
+                </div>
+
+                <!-- 主標題與標語 -->
+                <div class="mb-6">
+                    <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold tracking-widest bg-amber-500/15 text-amber-300 border border-amber-500/30 mb-3">
+                        課堂互動體驗 ｜ 身體印記探索
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-black tracking-tight text-white mb-3 leading-tight">
+                        ！我想要刺青！<br>
+                        <span class="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 bg-clip-text text-transparent">
+                            自由人刺青的選擇
+                        </span>
+                    </h2>
+                    <p class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-xl mx-auto mt-4">
+                        如果今天沒有任何現實包袱與他人眼光，你擁有百分之百的<strong class="text-amber-400">身體自主權</strong>——你會在皮膚上留下什麼樣的永久印記？
+                    </p>
+                </div>
+
+                <!-- 三大探索重點預覽標籤 -->
+                <div class="grid grid-cols-3 gap-2 sm:gap-4 max-w-lg mx-auto mb-8 text-xs sm:text-sm">
+                    <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-3 flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-location-crosshairs text-amber-400 text-base mb-1"></i>
+                        <span class="font-bold text-slate-200">部位與面積</span>
+                    </div>
+                    <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-3 flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-palette text-orange-400 text-base mb-1"></i>
+                        <span class="font-bold text-slate-200">圖案與風格</span>
+                    </div>
+                    <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-3 flex flex-col items-center justify-center">
+                        <i class="fa-solid fa-heart-pulse text-rose-400 text-base mb-1"></i>
+                        <span class="font-bold text-slate-200">內心與動機</span>
+                    </div>
+                </div>
+
+                <!-- 行動呼籲按鈕 -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                    <button onclick="startQuiz()" class="w-full sm:w-auto px-9 py-4 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-extrabold text-lg rounded-2xl shadow-lg shadow-amber-500/25 transition-all transform hover:scale-105 active:scale-95 cursor-pointer">
+                        開始設計我的刺青 <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 畫面 1：問題與選項區 (動態生成) -->
+            <section id="screen-quiz" class="hidden animate-fade-in bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl">
+                <div class="mb-6">
+                    <span id="q-category" class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 mb-3">
+                        STEP 1 / 4
+                    </span>
+                    <h2 id="q-title" class="text-2xl sm:text-3xl font-extrabold text-white mb-2">
+                        題目標題
+                    </h2>
+                    <p id="q-subtitle" class="text-slate-400 text-sm sm:text-base">
+                        題目副標題說明
+                    </p>
+                </div>
+
+                <!-- 選項網格 -->
+                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    <!-- 由 JS 動態填入選項卡片 -->
+                </div>
+
+                <!-- 底部控制按鈕 -->
+                <div class="flex items-center justify-between pt-4 border-t border-slate-800">
+                    <button id="btn-prev" onclick="prevQuestion()" class="px-5 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 font-semibold transition-colors cursor-pointer">
+                        <i class="fa-solid fa-arrow-left mr-2"></i> 上一步
+                    </button>
+                    <button id="btn-next" onclick="nextQuestion()" disabled class="px-7 py-3 rounded-xl bg-amber-500 text-slate-950 font-extrabold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-amber-400 transition-all cursor-pointer">
+                        下一步 <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 畫面 2：專屬刺青分析報告 (結果頁) -->
+            <section id="screen-result" class="hidden animate-fade-in bg-slate-900/95 border border-slate-700 rounded-3xl p-6 sm:p-10 shadow-2xl">
+                <div class="text-center mb-8">
+                    <span class="inline-block px-4 py-1.5 rounded-full text-xs font-extrabold tracking-widest uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-3">
+                        自由人刺青檔案生成完畢
+                    </span>
+                    <h2 id="res-persona-title" class="text-3xl sm:text-4xl font-black text-white mb-2">
+                        你的刺青靈魂類型
+                    </h2>
+                    <p id="res-persona-tagline" class="text-amber-400 font-medium text-base sm:text-lg">
+                        一句話總結你的風格
+                    </p>
+                </div>
+
+                <!-- 選擇摘要卡片 -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+                    <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 text-center">
+                        <div class="text-xs text-slate-400 mb-1">刺青位置</div>
+                        <div id="sum-location" class="font-bold text-white text-sm sm:text-base">-</div>
+                    </div>
+                    <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 text-center">
+                        <div class="text-xs text-slate-400 mb-1">圖案風格</div>
+                        <div id="sum-style" class="font-bold text-white text-sm sm:text-base">-</div>
+                    </div>
+                    <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 text-center">
+                        <div class="text-xs text-slate-400 mb-1">面積大小</div>
+                        <div id="sum-size" class="font-bold text-white text-sm sm:text-base">-</div>
+                    </div>
+                    <div class="bg-slate-800/70 border border-slate-700/80 rounded-2xl p-4 text-center">
+                        <div class="text-xs text-slate-400 mb-1">核心動機</div>
+                        <div id="sum-motive" class="font-bold text-white text-sm sm:text-base">-</div>
+                    </div>
+                </div>
+
+                <!-- 自由人視角解析 -->
+                <div class="bg-slate-800/50 border border-slate-700 rounded-2xl p-5 sm:p-6 mb-6">
+                    <h3 class="text-lg font-bold text-white flex items-center mb-3">
+                        <i class="fa-solid fa-feather-pointed text-amber-400 mr-2.5"></i> 自由人選擇解析
+                    </h3>
+                    <p id="res-analysis" class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        解析內容...
+                    </p>
+                </div>
+
+                <!-- 課程銜接思考題（引導進入下一個單元：刻板印象與教師身分） -->
+                <div class="bg-gradient-to-r from-rose-950/60 to-amber-950/50 border border-rose-500/40 rounded-2xl p-5 sm:p-6 mb-8">
+                    <div class="flex items-start space-x-3">
+                        <div class="mt-1 text-rose-400 text-xl">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-extrabold text-rose-300 mb-2">
+                                課堂思考：如果今天你的身分改變了呢？
+                            </h3>
+                            <p id="res-reflection" class="text-slate-200 text-sm sm:text-base leading-relaxed">
+                                思考引導內容...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 操作按鈕區 -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+                    <button onclick="openStatsModal()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold transition-all flex items-center justify-center shadow-lg shadow-indigo-500/25 cursor-pointer">
+                        <i class="fa-solid fa-chart-column mr-2"></i> 查看全班統計結果
+                    </button>
+                    <button onclick="copyResult()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold transition-all flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-copy mr-2 text-amber-400"></i> 複製我的選擇
+                    </button>
+                    <button onclick="restartQuiz()" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold transition-all flex items-center justify-center cursor-pointer">
+                        <i class="fa-solid fa-rotate-right mr-2"></i> 重新測驗
+                    </button>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- 全班統計結果彈跳視窗 (Modal) -->
+    <div id="stats-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl animate-fade-in">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-6">
+                <div>
+                    <span class="text-xs font-bold text-amber-400 uppercase tracking-wider">即時數據彙整</span>
+                    <h2 class="text-2xl font-black text-white flex items-center gap-3">
+                        全班選擇結果統計
+                        <span id="modal-total-count" class="text-sm bg-amber-500/20 text-amber-400 border border-amber-500/40 px-3 py-1 rounded-full">共 0 人作答</span>
+                    </h2>
+                </div>
+                <button onclick="closeStatsModal()" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors cursor-pointer">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- 統計圖表網格 -->
+            <div id="stats-content" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 由 JS 動態生成四個維度的長條圖 -->
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+                <div>
+                    <i class="fa-solid fa-circle-info text-amber-400 mr-1"></i> 數據會即時同步更新，方便課堂投影討論多數人的傾向。
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="confirmClearStats()" id="btn-clear-stats" class="px-4 py-2 rounded-lg bg-rose-950/60 hover:bg-rose-900/80 text-rose-300 border border-rose-800/60 transition-colors cursor-pointer">
+                        <i class="fa-solid fa-trash-can mr-1"></i> 清空統計資料
+                    </button>
+                    <button onclick="closeStatsModal()" class="px-6 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold cursor-pointer">
+                        關閉視窗
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 二次確認清空資料 Modal (取代 confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 bg-slate-950/90 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-rose-500/50 rounded-2xl max-w-md w-full p-6 text-center shadow-2xl">
+            <div class="w-14 h-14 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">確定要清空所有統計紀錄嗎？</h3>
+            <p class="text-sm text-slate-400 mb-6">此動作會將目前累積的所有作答數據歸零（適合在切換不同班級上課前使用）。</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="closeConfirmModal()" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold cursor-pointer">取消</button>
+                <button onclick="executeClearStats()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold cursor-pointer">確定清空</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示訊息 Toast (取代 alert) -->
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-xl font-bold text-sm opacity-0 pointer-events-none transition-opacity duration-300 z-[70] flex items-center space-x-2">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-msg">已複製到剪貼簿！</span>
+    </div>
+
+    <!-- 頁尾 -->
+    <footer class="w-full py-4 text-center text-xs text-slate-500 border-t border-slate-800/60">
+        課堂互動系統 ｜ 探索自我與社會的對話
+    </footer>
+
+    <!-- 引入 Firebase SDK 進行即時多人資料統計 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 全域變數供一般 script 呼叫
+        window.allResponses = [];
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-tattoo-app';
+
+        // 初始化 Firebase 與驗證
+        async function initFirebase() {
+            try {
+                if (typeof __firebase_config === 'undefined') {
+                    console.warn("未偵測到雲端設定，啟用單機模擬統計模式");
+                    return;
+                }
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // 優先使用自訂 Token 登入，否則匿名登入
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                    currentUser = cred.user;
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    currentUser = cred.user;
+                }
+
+                // 驗證完成後監聽公開統計集合
+                listenToStats();
+            } catch (error) {
+                console.error("Firebase 初始化失敗:", error);
+            }
+        }
+
+        // 即時監聽全班作答資料
+        function listenToStats() {
+            if (!db || !currentUser) return;
+            const statsCol = collection(db, 'artifacts', appId, 'public', 'data', 'tattoo_responses');
+            
+            onSnapshot(statsCol, (snapshot) => {
+                const list = [];
+                snapshot.forEach((docSnap) => {
+                    list.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                window.allResponses = list;
+                window.updateStatsUI();
+            }, (error) => {
+                console.error("讀取統計資料發生錯誤:", error);
+            });
+        }
+
+        // 儲存單筆測驗結果到雲端
+        window.saveResponseToCloud = async function(answerData) {
+            // 若在無雲端環境下，先存入本地陣列確保介面仍可展示
+            if (!db || !currentUser) {
+                window.allResponses.push(answerData);
+                window.updateStatsUI();
+                return;
+            }
+
+            try {
+                const statsCol = collection(db, 'artifacts', appId, 'public', 'data', 'tattoo_responses');
+                await addDoc(statsCol, {
+                    ...answerData,
+                    uid: currentUser.uid,
+                    timestamp: Date.now()
+                });
+            } catch (error) {
+                console.error("儲存作答結果失敗:", error);
+            }
+        };
+
+        // 清空所有統計資料 (切換班級用)
+        window.clearAllCloudStats = async function() {
+            if (!db || !currentUser) {
+                window.allResponses = [];
+                window.updateStatsUI();
+                return;
+            }
+
+            try {
+                const statsCol = collection(db, 'artifacts', appId, 'public', 'data', 'tattoo_responses');
+                const snapshot = await getDocs(statsCol);
+                const deletePromises = [];
+                snapshot.forEach((docSnap) => {
+                    deletePromises.push(deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tattoo_responses', docSnap.id)));
+                });
+                await Promise.all(deletePromises);
+                window.showToast('已清空所有統計紀錄！');
+            } catch (error) {
+                console.error("清空統計失敗:", error);
+                window.showToast('清空資料時發生錯誤');
+            }
+        };
+
+        // 啟動連線
+        initFirebase();
+    </script>
+
+    <script>
+        // 測驗題庫資料結構
+        const quizData = [
+            {
+                id: 'location',
+                stepLabel: 'STEP 1 / 4：部位選擇',
+                title: '你想把這個刺青留在身體的哪個位置？',
+                subtitle: '不同的位置代表著「被看見的程度」與「私密性」的權衡。',
+                options: [
+                    {
+                        value: '顯眼外露處',
+                        label: '前臂、手腕或小腿',
+                        desc: '穿短袖短褲就能看見，隨時都能欣賞，也大方展現給世界。',
+                        icon: 'fa-hand-sparkles',
+                        visibilityScore: 3
+                    },
+                    {
+                        value: '半隱密衣物處',
+                        label: '上臂、肩膀或鎖骨',
+                        desc: '日常穿著有袖衣物時可遮掩，穿無袖或特定場合才會顯露。',
+                        icon: 'fa-shirt',
+                        visibilityScore: 2
+                    },
+                    {
+                        value: '極度私密處',
+                        label: '胸口、肋骨或後背',
+                        desc: '幾乎只有自己和最親近的人看得到，是專屬於自己的秘密。',
+                        icon: 'fa-heart',
+                        visibilityScore: 1
+                    },
+                    {
+                        value: '高調視覺焦點',
+                        label: '頸部、耳後或手指',
+                        desc: '幾乎無法用衣物遮擋，極具個性與態度，一眼就會被注意到。',
+                        icon: 'fa-eye',
+                        visibilityScore: 4
+                    }
+                ]
+            },
+            {
+                id: 'style',
+                stepLabel: 'STEP 2 / 4：圖案風格',
+                title: '你會選擇什麼樣的圖案與視覺風格？',
+                subtitle: '圖案往往承載著個人的美學偏好、文化認同或生命故事。',
+                options: [
+                    {
+                        value: '韓系微刺青',
+                        label: '韓系微刺青 / 幾何線條',
+                        desc: '精緻的小花、星球、細膩英文草寫，文青感十足且柔和。',
+                        icon: 'fa-seedling',
+                        styleTag: '文青美學'
+                    },
+                    {
+                        value: '美式/日式傳統',
+                        label: '傳統大圖 / 寫實圖騰',
+                        desc: '神獸、海浪、老學校(Old School)或暗黑寫實，張力與氣場極強。',
+                        icon: 'fa-dragon',
+                        styleTag: '強烈張力'
+                    },
+                    {
+                        value: '文化與族群圖騰',
+                        label: '原住民族圖騰 / 信仰符號',
+                        desc: '百步蛇、祖靈之眼或家族徽章，代表文化傳承、榮耀與身分認同。',
+                        icon: 'fa-sun',
+                        styleTag: '文化根源'
+                    },
+                    {
+                        value: '客製生命印記',
+                        label: '寵物肖像 / 重要紀念日',
+                        desc: '將毛小孩、家人筆跡或人生轉折點化作永恆的插畫印記。',
+                        icon: 'fa-paw',
+                        styleTag: '情感紀念'
+                    }
+                ]
+            },
+            {
+                id: 'size',
+                stepLabel: 'STEP 3 / 4：面積大小',
+                title: '這個刺青的面積大小大概是多少？',
+                subtitle: '面積大小直接影響視覺衝擊力與痛感體驗（笑）。',
+                options: [
+                    {
+                        value: '硬幣大小 (3-5cm)',
+                        label: '硬幣大小（約 3～5 公分）',
+                        desc: '小巧精緻，像身體上的一顆獨特痣記，低調卻有存在感。',
+                        icon: 'fa-coins'
+                    },
+                    {
+                        value: '手掌大小 (10-15cm)',
+                        label: '手掌大小（約 10～15 公分）',
+                        desc: '能展現完整的細節與光影層次，是極具代表性的主視覺。',
+                        icon: 'fa-hand'
+                    },
+                    {
+                        value: '包手/包腿大面積',
+                        label: '半甲 / 包手 / 大面積延伸',
+                        desc: '將身體當作完整畫布，追求極致的視覺震撼與藝術完整性。',
+                        icon: 'fa-paintbrush'
+                    },
+                    {
+                        value: '文字或細線條',
+                        label: '一句座右銘 / 細長線條',
+                        desc: '不追求面積，而是用簡潔的文字或線條勾勒出信念。',
+                        icon: 'fa-quote-left'
+                    }
+                ]
+            },
+            {
+                id: 'motive',
+                stepLabel: 'STEP 4 / 4：內心動機',
+                title: '是什麼原因讓你決定要刺下這個圖案？',
+                subtitle: '最後一題！誠實面對你內心最真實的渴望。',
+                options: [
+                    {
+                        value: '紀念與提醒',
+                        label: '紀念重要的人事物 / 提醒自己',
+                        desc: '把愛、遺憾或人生座右銘刻在身上，成為支撐自己的力量。',
+                        icon: 'fa-bookmark'
+                    },
+                    {
+                        value: '純粹美感裝飾',
+                        label: '純粹覺得好看、喜歡這個藝術',
+                        desc: '就像挑衣服、戴飾品一樣，身體是我的，我想怎麼裝飾就怎麼裝飾。',
+                        icon: 'fa-palette'
+                    },
+                    {
+                        value: '自我認同與宣言',
+                        label: '展現真實自我 / 打破束縛',
+                        desc: '宣告「這就是我」，不在乎外界眼光，拿回身體的主導權。',
+                        icon: 'fa-fist-raised'
+                    },
+                    {
+                        value: '文化傳承與歸屬',
+                        label: '連結家族、族群或信仰',
+                        desc: '透過身體印記，確認自己從哪裡來，並為自己的文化感到驕傲。',
+                        icon: 'fa-users'
+                    }
+                ]
+            }
+        ];
+
+        // 狀態管理
+        let currentStep = 0;
+        const userAnswers = {};
+
+        // DOM 元素參照
+        const screenIntro = document.getElementById('screen-intro');
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenResult = document.getElementById('screen-result');
+        const stepIndicator = document.getElementById('step-indicator');
+        const progressBar = document.getElementById('progress-bar');
+
+        // 開始測驗
+        function startQuiz() {
+            currentStep = 0;
+            document.getElementById('header-subtitle').textContent = '身體自主權 × 社會框架';
+            document.getElementById('header-title').textContent = '！我想要刺青！自由人刺青的選擇';
+            screenIntro.classList.add('hidden');
+            screenResult.classList.add('hidden');
+            screenQuiz.classList.remove('hidden');
+            renderQuestion();
+        }
+
+        // 渲染當前題目
+        function renderQuestion() {
+            const q = quizData[currentStep];
+            
+            // 更新頂部狀態與進度條
+            stepIndicator.textContent = `問題 ${currentStep + 1} / ${quizData.length}`;
+            const progressPercent = ((currentStep) / quizData.length) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            // 更新題目文字
+            document.getElementById('q-category').textContent = q.stepLabel;
+            document.getElementById('q-title').textContent = q.title;
+            document.getElementById('q-subtitle').textContent = q.subtitle;
+
+            // 渲染選項卡片
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            q.options.forEach((opt) => {
+                const isSelected = userAnswers[q.id] && userAnswers[q.id].value === opt.value;
+                const card = document.createElement('div');
+                card.className = `card-hover cursor-pointer rounded-2xl border-2 p-5 flex flex-col justify-between bg-slate-800/60 border-slate-700/80 ${isSelected ? 'selected-card' : ''}`;
+                card.onclick = () => selectOption(q.id, opt);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-900/90 border border-slate-700 flex items-center justify-center text-amber-400">
+                                <i class="fa-solid ${opt.icon} text-lg"></i>
+                            </div>
+                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-amber-500 bg-amber-500 text-slate-950' : 'border-slate-600'}">
+                                ${isSelected ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1.5">${opt.label}</h3>
+                        <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">${opt.desc}</p>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // 更新按鈕狀態
+            const btnPrev = document.getElementById('btn-prev');
+            const btnNext = document.getElementById('btn-next');
+            
+            btnPrev.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
+            btnNext.disabled = !userAnswers[q.id];
+            btnNext.innerHTML = currentStep === quizData.length - 1 
+                ? '查看我的刺青結果 <i class="fa-solid fa-sparkles ml-2"></i>' 
+                : '下一步 <i class="fa-solid fa-arrow-right ml-2"></i>';
+        }
+
+        // 選擇選項
+        function selectOption(questionId, optionObj) {
+            userAnswers[questionId] = optionObj;
+            renderQuestion();
+        }
+
+        // 上一題
+        function prevQuestion() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderQuestion();
+            }
+        }
+
+        // 下一題或顯示結果
+        function nextQuestion() {
+            if (currentStep < quizData.length - 1) {
+                currentStep++;
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // 生成結果頁
+        function showResult() {
+            screenQuiz.classList.add('hidden');
+            screenResult.classList.remove('hidden');
+            stepIndicator.textContent = '測驗完成';
+            progressBar.style.width = '100%';
+
+            // 揭曉完整主題標題
+            document.getElementById('header-subtitle').textContent = '身體自主權 × 社會框架';
+            document.getElementById('header-title').textContent = '！我想要刺青！自由人刺青的選擇';
+
+            const loc = userAnswers['location'];
+            const style = userAnswers['style'];
+            const size = userAnswers['size'];
+            const motive = userAnswers['motive'];
+
+            // 將此次選擇寫入全班統計
+            if (window.saveResponseToCloud) {
+                window.saveResponseToCloud({
+                    location: loc.value,
+                    style: style.value,
+                    size: size.value,
+                    motive: motive.value
+                });
+            }
+
+            // 填入摘要卡片
+            document.getElementById('sum-location').textContent = loc.value;
+            document.getElementById('sum-style').textContent = style.value;
+            document.getElementById('sum-size').textContent = size.value;
+            document.getElementById('sum-motive').textContent = motive.value;
+
+            // 根據組合決定稱號與解析
+            let personaTitle = '';
+            let personaTagline = '';
+            let analysisText = '';
+            let reflectionText = '';
+
+            if (loc.visibilityScore >= 3 && (style.value === '美式/日式傳統' || size.value === '包手/包腿大面積')) {
+                personaTitle = '【無畏目光的身體藝術家】';
+                personaTagline = '「我的身體就是最誠實的畫布，無需向世界隱藏。」';
+                analysisText = `你選擇在「${loc.label}」刺上「${style.label}」，展現了極高的自我認同與美學自信。對身為自由人的你而言，刺青不是禁忌，而是一種將內在精神具象化的藝術創作。`;
+                reflectionText = `在自由人的狀態下，這樣的選擇非常帥氣！但試想一下：如果你明天要去參加「公立學校教師甄試」，或是站在講台上對著 30 位國中生上課，你覺得校長、家長或學生看到這個刺青時，會如何評價你的「專業度」？`;
+            } else if (style.value === '文化與族群圖騰') {
+                personaTitle = '【榮耀根源的文化傳承者】';
+                personaTagline = '「這不是單純的圖案，而是流淌在血液裡的歷史與驕傲。」';
+                analysisText = `你選擇了「${style.label}」並將它留在「${loc.label}」。對你來說，刺青承載著族群認同、家族記憶與神聖的文化意義，是人權與文化權的重要體現。`;
+                reflectionText = `在原住民族文化中，文面與圖騰是成年與榮耀的象徵；然而在現代漢人主導的職場或教育體制中，卻常被誤解或貼上標籤。如果一位原住民老師帶著家族圖騰走進教室，社會該如何學會尊重這份文化差異？`;
+            } else if (loc.visibilityScore <= 2) {
+                personaTitle = '【溫柔內斂的秘密收藏家】';
+                personaTagline = '「把最重要的故事，留在離心跳最近的地方。」';
+                analysisText = `你傾向將「${style.label}」刺在「${loc.label}」。你重視身體自主權，但同時也享受擁有私密空間的安全感——這個刺青是為了取悅自己、紀念故事，而不一定要向所有人交代。`;
+                reflectionText = `有趣的是，許多現實生活中的「刺青教師」在第一次刺青時，也跟你做出了高度相似的選擇（容易被衣物遮擋的位置與較小面積）。為什麼即使身為自由人，我們在潛意識裡仍會考量「能不能被遮住」呢？這是否也是一種社會化的結果？`;
+            } else {
+                personaTitle = '【忠於自我的生活美學家】';
+                personaTagline = '「用剛剛好的印記，記錄獨一無二的生命軌跡。」';
+                analysisText = `你選擇在「${loc.label}」留下「${style.label}」，並以「${motive.label}」作為出發點。你把刺青視為生活美學與個人紀念的自然延伸，既不刻意張揚，也不願委屈自己。`;
+                reflectionText = `這樣清新且充滿個人意義的刺青，在現代年輕世代中已經非常普遍。但當你切換身分成為「為人師表」時，家長與社會大眾是否能把「你的刺青」與「你的教學能力」分開看待？`;
+            }
+
+            document.getElementById('res-persona-title').textContent = personaTitle;
+            document.getElementById('res-persona-tagline').textContent = personaTagline;
+            document.getElementById('res-analysis').textContent = analysisText;
+            document.getElementById('res-reflection').textContent = reflectionText;
+        }
+
+        // 複製結果文字 (相容 iFrame 環境)
+        function copyResult() {
+            const loc = userAnswers['location'].label;
+            const style = userAnswers['style'].label;
+            const size = userAnswers['size'].label;
+            const motive = userAnswers['motive'].label;
+            const title = document.getElementById('res-persona-title').textContent;
+
+            const shareText = `【我的自由人刺青選擇】\n稱號：${title}\n📍 位置：${loc}\n🎨 風格：${style}\n📏 大小：${size}\n💭 動機：${motive}\n\n如果我是老師，這個刺青會面臨什麼樣的眼光呢？`;
+
+            const textArea = document.createElement("textarea");
+            textArea.value = shareText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast('已複製結果！可貼到班級群組或討論區分享');
+            } catch (err) {
+                showToast('複製失敗，請手動選取文字');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // 顯示自訂提示訊息
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = message;
+            toast.classList.remove('opacity-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 3000);
+        }
+        window.showToast = showToast;
+
+        // 重新開始
+        function restartQuiz() {
+            for (let key in userAnswers) {
+                delete userAnswers[key];
+            }
+            currentStep = 0;
+            progressBar.style.width = '0%';
+            stepIndicator.textContent = '準備開始';
+            document.getElementById('header-subtitle').textContent = '身體自主權 × 社會框架';
+            document.getElementById('header-title').textContent = '！我想要刺青！自由人刺青的選擇';
+            screenResult.classList.add('hidden');
+            screenIntro.classList.remove('hidden');
+        }
+
+        // 開啟全班統計視窗
+        function openStatsModal() {
+            updateStatsUI();
+            document.getElementById('stats-modal').classList.remove('hidden');
+        }
+
+        // 關閉全班統計視窗
+        function closeStatsModal() {
+            document.getElementById('stats-modal').classList.add('hidden');
+        }
+
+        // 開啟清空確認視窗
+        function confirmClearStats() {
+            document.getElementById('confirm-modal').classList.remove('hidden');
+        }
+
+        // 關閉清空確認視窗
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+        }
+
+        // 執行清空統計
+        function executeClearStats() {
+            closeConfirmModal();
+            if (window.clearAllCloudStats) {
+                window.clearAllCloudStats();
+            }
+        }
+
+        // 更新全班統計圖表介面
+        function updateStatsUI() {
+            const responses = window.allResponses || [];
+            const total = responses.length;
+
+            // 更新頂部按鈕與視窗內的總人數標籤
+            document.getElementById('total-count-badge').textContent = total;
+            document.getElementById('modal-total-count').textContent = `共 ${total} 人作答`;
+
+            const container = document.getElementById('stats-content');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // 針對 4 個問題維度分別計算長條圖
+            const categoryTitles = {
+                location: '1. 刺青位置分布',
+                style: '2. 圖案風格偏好',
+                size: '3. 面積大小選擇',
+                motive: '4. 內心核心動機'
+            };
+
+            quizData.forEach((q) => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5';
+
+                let barsHtml = '';
+                q.options.forEach((opt) => {
+                    const count = responses.filter(r => r[q.id] === opt.value).length;
+                    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+
+                    barsHtml += `
+                        <div class="mb-3 last:mb-0">
+                            <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                <span class="text-slate-200 font-medium truncate pr-2">${opt.value}</span>
+                                <span class="text-amber-400 font-bold shrink-0">${count} 人 (${percent}%)</span>
+                            </div>
+                            <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <h3 class="text-base font-extrabold text-white mb-4 flex items-center">
+                        <span class="w-2 h-2 rounded-full bg-amber-400 mr-2"></span>
+                        ${categoryTitles[q.id]}
+                    </h3>
+                    <div>${barsHtml}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        window.updateStatsUI = updateStatsUI;
+    </script>
+</body>
+</html>
